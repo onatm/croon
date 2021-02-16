@@ -51,15 +51,15 @@ named!(
 
 named!(
   cron_expression_list<CompleteStr, Vec<CronExpression>>,
-  ws!(alt!(
-      do_parse!(list: separated_nonempty_list!(tag!(","), cron_expression) >> (list))
-          | do_parse!(spec: cron_expression >> (vec![spec]))
+  ws!(complete!(alt!(
+      separated_nonempty_list!(tag!(","), cron_expression)
+          | do_parse!(spec: cron_expression >> (vec![spec])))
   ))
 );
 
 named!(
   schedule<CompleteStr, Schedule>,
-  do_parse!(minutes: cron_expression_list >> (Schedule::from_cron_expression_list(minutes)))
+  complete!(do_parse!(minutes: cron_expression_list >> eof!() >> (Schedule::from_cron_expression_list(minutes))))
 );
 
 #[cfg(test)]
@@ -121,8 +121,8 @@ mod test {
     }
 
     #[test]
-    fn test_invalid_period_range() {
+    fn test_invalid_period_range_schedule() {
         let expression = "30/30-150";
-        assert!(period(CompleteStr(expression)).is_err());
+        assert!(schedule(CompleteStr(expression)).is_err());
     }
 }
