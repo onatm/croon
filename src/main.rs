@@ -9,7 +9,10 @@ fn main() {
         process::exit(1);
     }
 
-    let schedule = Schedule::from_str(&args[1]).ok().unwrap();
+    let schedule = Schedule::from_str(&args[1]).unwrap_or_else(|e| {
+        eprint!("Failed to parse: {:?}", e.to_string());
+        process::exit(1);
+    });
 
     println!("{:?}", schedule);
 }
