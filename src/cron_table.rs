@@ -34,11 +34,11 @@ impl CronTab {
         day_list: Vec<CronExpression>,
         command: String,
     ) -> Result<CronTab, Error> {
-        let minute = Self::calculate_unit(minute_list, 0, 59)?;
-        let hour = Self::calculate_unit(hour_list, 0, 23)?;
-        let day_of_month = Self::calculate_unit(day_of_month_list, 1, 31)?;
-        let month = Self::calculate_unit(month_list, 1, 12)?;
-        let day = Self::calculate_unit(day_list, 0, 6)?;
+        let minute = Self::calculate_time(minute_list, 0, 59)?;
+        let hour = Self::calculate_time(hour_list, 0, 23)?;
+        let day_of_month = Self::calculate_time(day_of_month_list, 1, 31)?;
+        let month = Self::calculate_time(month_list, 1, 12)?;
+        let day = Self::calculate_time(day_list, 0, 6)?;
 
         if command.len() == 0 {
             return Err(Error {});
@@ -54,7 +54,7 @@ impl CronTab {
         })
     }
 
-    fn calculate_unit(
+    fn calculate_time(
         expressions: Vec<CronExpression>,
         min: u32,
         max: u32,
