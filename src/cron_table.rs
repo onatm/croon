@@ -14,6 +14,7 @@ pub struct CronTab {
     pub day_of_month: Vec<u32>,
     pub month: Vec<u32>,
     pub day: Vec<u32>,
+    pub command: String,
 }
 
 impl FromStr for CronTab {
@@ -31,6 +32,7 @@ impl CronTab {
         day_of_month_list: Vec<CronExpression>,
         month_list: Vec<CronExpression>,
         day_list: Vec<CronExpression>,
+        command: String,
     ) -> Result<CronTab, Error> {
         let minute = Self::calculate_unit(minute_list, 0, 59)?;
         let hour = Self::calculate_unit(hour_list, 0, 23)?;
@@ -38,12 +40,17 @@ impl CronTab {
         let month = Self::calculate_unit(month_list, 1, 12)?;
         let day = Self::calculate_unit(day_list, 0, 6)?;
 
+        if command.len() == 0 {
+            return Err(Error {});
+        }
+
         Ok(CronTab {
             minute,
             hour,
             day_of_month,
             month,
             day,
+            command,
         })
     }
 

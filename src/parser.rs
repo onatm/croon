@@ -10,7 +10,7 @@ pub struct Parser;
 
 impl Parser {
     pub fn parse(expression: &str) -> Result<CronTab, Error> {
-        match schedule(CompleteStr(expression)) {
+        match cron_table(CompleteStr(expression)) {
             Ok((_, schedule)) => Ok(schedule),
             Err(_) => Err(Error {}),
         }
@@ -62,16 +62,26 @@ named!(
 );
 
 named!(
-  schedule<CompleteStr, CronTab>,
-  complete!(
-      do_parse!(
-          minute: cron_expression_list >>
-          hour: cron_expression_list >>
-          day_of_month: cron_expression_list >>
-          month: cron_expression_list >>
-          day: cron_expression_list >>
-          eof!() >>
-          (CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day).unwrap())))
+    rest<CompleteStr, String>,
+    parse_to!(String)
+);
+
+named!(
+  cron_table<CompleteStr, CronTab>,
+  map_res!(
+    complete!(
+        do_parse!(
+            minute: cron_expression_list >>
+            hour: cron_expression_list >>
+            day_of_month: cron_expression_list >>
+            month: cron_expression_list >>
+            day: cron_expression_list >>
+            command: rest >>
+            eof!() >> (minute, hour, day_of_month, month, day, command)
+        )
+    ),
+    |(minute, hour, day_of_month, month, day, command)| CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day, command)
+  )
 );
 
 #[cfg(test)]
@@ -144,63 +154,72 @@ mod test {
     }
 
     #[test]
-    fn test_all_schedule() {
+    fn test_all_cron_table() {
         let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
             day: (0..=6).collect(),
+            command: String::from("echo 'hello world'"),
         };
 
-        let (_, schedule) = schedule(CompleteStr("* * * * *")).unwrap();
-        assert_eq!(schedule, expected);
+        let (_, cron_table) = cron_table(CompleteStr("* * * * * echo 'hello world'")).unwrap();
+        assert_eq!(cron_table, expected);
     }
 
     #[test]
-    fn test_monday_only_schedule() {
+    fn test_monday_only_cron_table() {
         let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
             day: vec![1],
+            command: String::from("echo"),
         };
 
-        let (_, schedule) = schedule(CompleteStr("* * * * 1")).unwrap();
-        assert_eq!(schedule, expected);
+        let (_, cron_table) = cron_table(CompleteStr("* * * * 1 echo")).unwrap();
+        assert_eq!(cron_table, expected);
     }
 
     #[test]
-    fn test_every_two_hours_between_two_and_eight_schedule() {
+    fn test_every_two_hours_between_two_and_eight_cron_table() {
         let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (2..=8).step_by(2).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
             day: (0..=6).collect(),
+            command: String::from("echo"),
         };
 
-        let (_, schedule) = schedule(CompleteStr("* 2-8/2 * * *")).unwrap();
-        assert_eq!(schedule, expected);
+        let (_, cron_table) = cron_table(CompleteStr("* 2-8/2 * * * echo")).unwrap();
+        assert_eq!(cron_table, expected);
     }
 
     #[test]
-    fn test_first_day_of_month_schedule() {
+    fn test_first_day_of_month_cron_table() {
         let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: vec![1],
             month: (1..=12).collect(),
             day: (0..=6).collect(),
+            command: String::from("echo"),
         };
 
-        let (_, schedule) = schedule(CompleteStr("* * 1 * *")).unwrap();
-        assert_eq!(schedule, expected);
+        let (_, cron_table) = cron_table(CompleteStr("* * 1 * * echo")).unwrap();
+        assert_eq!(cron_table, expected);
     }
 
     #[test]
-    fn test_invalid_period_range_schedule() {
-        assert!(schedule(CompleteStr("30/30-150 * * * *")).is_err());
+    fn test_invalid_period_range_cron_table() {
+        assert!(cron_table(CompleteStr("30/30-150 * * * * echo")).is_err());
+    }
+
+    #[test]
+    fn test_missing_command_cron_table() {
+        assert!(cron_table(CompleteStr("* * * * *")).is_err());
     }
 }
