@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq)]
-pub struct Schedule {
+pub struct CronTab {
     pub minute: Vec<u32>,
     pub hour: Vec<u32>,
     pub day_of_month: Vec<u32>,
@@ -16,7 +16,7 @@ pub struct Schedule {
     pub day: Vec<u32>,
 }
 
-impl FromStr for Schedule {
+impl FromStr for CronTab {
     type Err = Error;
 
     fn from_str(expression: &str) -> Result<Self, Self::Err> {
@@ -24,21 +24,21 @@ impl FromStr for Schedule {
     }
 }
 
-impl Schedule {
+impl CronTab {
     pub fn from_cron_expression_list(
         minute_list: Vec<CronExpression>,
         hour_list: Vec<CronExpression>,
         day_of_month_list: Vec<CronExpression>,
         month_list: Vec<CronExpression>,
         day_list: Vec<CronExpression>,
-    ) -> Result<Schedule, Error> {
+    ) -> Result<CronTab, Error> {
         let minute = Self::calculate_unit(minute_list, 0, 59)?;
         let hour = Self::calculate_unit(hour_list, 0, 23)?;
         let day_of_month = Self::calculate_unit(day_of_month_list, 1, 31)?;
         let month = Self::calculate_unit(month_list, 1, 12)?;
         let day = Self::calculate_unit(day_list, 0, 6)?;
 
-        Ok(Schedule {
+        Ok(CronTab {
             minute,
             hour,
             day_of_month,

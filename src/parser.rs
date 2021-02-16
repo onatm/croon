@@ -1,15 +1,15 @@
 use nom::{types::CompleteStr, *};
 
 use crate::{
+    cron_table::CronTab,
     error::Error,
     expression::{CronBaseExpression, CronExpression},
-    schedule::Schedule,
 };
 
 pub struct Parser;
 
 impl Parser {
-    pub fn parse(expression: &str) -> Result<Schedule, Error> {
+    pub fn parse(expression: &str) -> Result<CronTab, Error> {
         match schedule(CompleteStr(expression)) {
             Ok((_, schedule)) => Ok(schedule),
             Err(_) => Err(Error {}),
@@ -62,7 +62,7 @@ named!(
 );
 
 named!(
-  schedule<CompleteStr, Schedule>,
+  schedule<CompleteStr, CronTab>,
   complete!(
       do_parse!(
           minute: cron_expression_list >>
@@ -71,7 +71,7 @@ named!(
           month: cron_expression_list >>
           day: cron_expression_list >>
           eof!() >>
-          (Schedule::from_cron_expression_list(minute, hour, day_of_month, month, day).unwrap())))
+          (CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day).unwrap())))
 );
 
 #[cfg(test)]
@@ -145,7 +145,7 @@ mod test {
 
     #[test]
     fn test_all_schedule() {
-        let expected = Schedule {
+        let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
@@ -159,7 +159,7 @@ mod test {
 
     #[test]
     fn test_monday_only_schedule() {
-        let expected = Schedule {
+        let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
@@ -173,7 +173,7 @@ mod test {
 
     #[test]
     fn test_every_two_hours_between_two_and_eight_schedule() {
-        let expected = Schedule {
+        let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (2..=8).step_by(2).collect(),
             day_of_month: (1..=31).collect(),
@@ -187,7 +187,7 @@ mod test {
 
     #[test]
     fn test_first_day_of_month_schedule() {
-        let expected = Schedule {
+        let expected = CronTab {
             minute: (0..=59).collect(),
             hour: (0..=23).collect(),
             day_of_month: vec![1],

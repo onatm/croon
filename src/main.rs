@@ -1,6 +1,6 @@
 use std::{env, process, str::FromStr};
 
-use croon::schedule::Schedule;
+use croon::cron_table::CronTab;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -9,7 +9,7 @@ fn main() {
         process::exit(1);
     }
 
-    let schedule = Schedule::from_str(&args[1]).unwrap_or_else(|e| {
+    let schedule = CronTab::from_str(&args[1]).unwrap_or_else(|e| {
         eprint!("Failed to parse: {:?}", e.to_string());
         process::exit(1);
     });
