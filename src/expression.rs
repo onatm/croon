@@ -8,5 +8,5 @@ pub enum CronBaseExpression {
 #[derive(Debug, PartialEq)]
 pub enum CronExpression {
     Simple(CronBaseExpression),
-    Period(CronBaseExpression, u32),
+    Frequency(CronBaseExpression, u32),
 }

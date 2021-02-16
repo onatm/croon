@@ -42,15 +42,15 @@ named!(
 );
 
 named!(
-  period<CompleteStr, CronExpression>,
+  freq<CompleteStr, CronExpression>,
   complete!(do_parse!(
-      start: cron_base_expression >> tag!("/") >> step: number >> (CronExpression::Period(start, step))
+      start: cron_base_expression >> tag!("/") >> freq: number >> (CronExpression::Frequency(start, freq))
   ))
 );
 
 named!(
   cron_expression<CompleteStr, CronExpression>,
-  alt!(period | map!(cron_base_expression, |x| CronExpression::Simple(x)))
+  alt!(freq | map!(cron_base_expression, |x| CronExpression::Simple(x)))
 );
 
 named!(
@@ -114,23 +114,23 @@ mod test {
     }
 
     #[test]
-    fn test_valid_period() {
-        period(CompleteStr("4/2")).unwrap();
+    fn test_valid_freq() {
+        freq(CompleteStr("4/2")).unwrap();
     }
 
     #[test]
-    fn test_invalid_period() {
-        assert!(period(CompleteStr("cron/1")).is_err());
+    fn test_invalid_freq() {
+        assert!(freq(CompleteStr("cron/1")).is_err());
     }
 
     #[test]
-    fn test_valid_all_period() {
-        period(CompleteStr("*/1")).unwrap();
+    fn test_valid_all_freq() {
+        freq(CompleteStr("*/1")).unwrap();
     }
 
     #[test]
-    fn test_invalid_all_period() {
-        assert!(period(CompleteStr("1/*")).is_err());
+    fn test_invalid_all_freq() {
+        assert!(freq(CompleteStr("1/*")).is_err());
     }
 
     #[test]
@@ -149,7 +149,7 @@ mod test {
     }
 
     #[test]
-    fn test_valid_period_list() {
+    fn test_valid_freq_list() {
         cron_expression_list(CompleteStr("4,2/1")).unwrap();
     }
 
@@ -214,7 +214,7 @@ mod test {
     }
 
     #[test]
-    fn test_invalid_period_range_cron_table() {
+    fn test_invalid_freq_range_cron_table() {
         assert!(cron_table(CompleteStr("30/30-150 * * * * echo")).is_err());
     }
 

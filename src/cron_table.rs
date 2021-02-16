@@ -77,14 +77,14 @@ impl CronTab {
             CronExpression::Simple(expression) => {
                 Self::from_cron_base_expression(expression, min, max)
             }
-            CronExpression::Period(start, step) => {
+            CronExpression::Frequency(start, freq) => {
                 let set = match start {
                     CronBaseExpression::Exact(start) => Ok((start..=max).collect()),
                     expression => Self::from_cron_base_expression(expression, min, max),
                 }?;
                 Ok(set
                     .into_iter()
-                    .step_by(step as usize)
+                    .step_by(freq as usize)
                     .collect::<LinkedHashSet<u32>>())
             }
         }
