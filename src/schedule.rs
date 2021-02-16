@@ -54,8 +54,7 @@ impl Schedule {
     ) -> Result<Vec<u32>, Error> {
         let mut set = LinkedHashSet::<u32>::new();
         for expression in expressions {
-            let inner = Self::from_cron_expression(expression, min, max)?;
-            set.extend(inner);
+            set.extend(Self::from_cron_expression(expression, min, max)?);
         }
         let mut items: Vec<u32> = set.into_iter().collect();
         items.sort();
@@ -76,11 +75,10 @@ impl Schedule {
                     CronBaseExpression::Exact(start) => Ok((start..=max).collect()),
                     expression => Self::from_cron_base_expression(expression, min, max),
                 }?;
-                let period_set = set
+                Ok(set
                     .into_iter()
                     .step_by(step as usize)
-                    .collect::<LinkedHashSet<u32>>();
-                Ok(period_set)
+                    .collect::<LinkedHashSet<u32>>())
             }
         }
     }
@@ -93,9 +91,7 @@ impl Schedule {
         match expression {
             CronBaseExpression::All => Ok((min..=max).collect()),
             CronBaseExpression::Exact(number) => {
-                let mut set = LinkedHashSet::new();
-                set.insert(number);
-                Ok(set)
+                Ok(vec![number].into_iter().collect::<LinkedHashSet<u32>>())
             }
             CronBaseExpression::Range(start, end) => {
                 if start > max || end > max {
