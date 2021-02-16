@@ -61,10 +61,13 @@ named!(
   schedule<CompleteStr, Schedule>,
   complete!(
       do_parse!(
-          minutes: cron_expression_list >>
-          hours: cron_expression_list >>
+          minute: cron_expression_list >>
+          hour: cron_expression_list >>
+          day_of_month: cron_expression_list >>
+          month: cron_expression_list >>
+          day: cron_expression_list >>
           eof!() >>
-          (Schedule::from_cron_expression_list(minutes, hours))))
+          (Schedule::from_cron_expression_list(minute, hour, day_of_month, month, day))))
 );
 
 #[cfg(test)]
@@ -73,61 +76,127 @@ mod test {
 
     #[test]
     fn test_valid_number() {
-        let expression = "42";
-        number(CompleteStr(expression)).unwrap();
+        number(CompleteStr("42")).unwrap();
     }
 
     #[test]
     fn test_invalid_number() {
-        let expression = "AAA";
-        assert!(number(CompleteStr(expression)).is_err());
-    }
-
-    #[test]
-    fn test_valid_all() {
-        let expression = "*";
-        all(CompleteStr(expression)).unwrap();
-    }
-
-    #[test]
-    fn test_valid_period() {
-        let expression = "4/2";
-        period(CompleteStr(expression)).unwrap();
-    }
-
-    #[test]
-    fn test_invalid_period() {
-        let expression = "cron/1";
-        assert!(period(CompleteStr(expression)).is_err());
-    }
-
-    #[test]
-    fn test_valid_number_list() {
-        let expression = "4,2";
-        cron_expression_list(CompleteStr(expression)).unwrap();
-    }
-
-    #[test]
-    fn test_invalid_number_list() {
-        let expression = "A,4,2";
-        assert!(cron_expression_list(CompleteStr(expression)).is_err());
+        assert!(number(CompleteStr("AAA")).is_err());
     }
 
     #[test]
     fn test_valid_range() {
-        let expression = "2-4";
-        range(CompleteStr(expression)).unwrap();
+        range(CompleteStr("2-4")).unwrap();
+    }
+
+    #[test]
+    fn test_invalid_range() {
+        assert!(range(CompleteStr("2-A")).is_err());
+    }
+
+    #[test]
+    fn test_valid_all() {
+        all(CompleteStr("*")).unwrap();
+    }
+
+    #[test]
+    fn test_valid_period() {
+        period(CompleteStr("4/2")).unwrap();
+    }
+
+    #[test]
+    fn test_invalid_period() {
+        assert!(period(CompleteStr("cron/1")).is_err());
     }
 
     #[test]
     fn test_valid_all_period() {
-        let expression = "*/1";
-        period(CompleteStr(expression)).unwrap();
+        period(CompleteStr("*/1")).unwrap();
+    }
+
+    #[test]
+    fn test_invalid_all_period() {
+        assert!(period(CompleteStr("1/*")).is_err());
+    }
+
+    #[test]
+    fn test_valid_number_list() {
+        cron_expression_list(CompleteStr("4,2")).unwrap();
+    }
+
+    #[test]
+    fn test_invalid_number_list() {
+        assert!(cron_expression_list(CompleteStr("A,4,2")).is_err());
+    }
+
+    #[test]
+    fn test_valid_range_list() {
+        cron_expression_list(CompleteStr("2-4,4-6")).unwrap();
+    }
+
+    #[test]
+    fn test_valid_period_list() {
+        cron_expression_list(CompleteStr("4,2/1")).unwrap();
+    }
+
+    #[test]
+    fn test_all_schedule() {
+        let expected = Schedule {
+            minute: (0..=59).collect(),
+            hour: (0..=23).collect(),
+            day_of_month: (1..=31).collect(),
+            month: (1..=12).collect(),
+            day: (0..=6).collect(),
+        };
+
+        let (_, schedule) = schedule(CompleteStr("* * * * *")).unwrap();
+        assert_eq!(schedule, expected);
+    }
+
+    #[test]
+    fn test_monday_only_schedule() {
+        let expected = Schedule {
+            minute: (0..=59).collect(),
+            hour: (0..=23).collect(),
+            day_of_month: (1..=31).collect(),
+            month: (1..=12).collect(),
+            day: vec![1],
+        };
+
+        let (_, schedule) = schedule(CompleteStr("* * * * 1")).unwrap();
+        assert_eq!(schedule, expected);
+    }
+
+    #[test]
+    fn test_every_two_hours_between_two_and_eight_schedule() {
+        let expected = Schedule {
+            minute: (0..=59).collect(),
+            hour: (2..=8).step_by(2).collect(),
+            day_of_month: (1..=31).collect(),
+            month: (1..=12).collect(),
+            day: (0..=6).collect(),
+        };
+
+        let (_, schedule) = schedule(CompleteStr("* 2-8/2 * * *")).unwrap();
+        assert_eq!(schedule, expected);
+    }
+
+    #[test]
+    fn test_first_day_of_month_schedule() {
+        let expected = Schedule {
+            minute: (0..=59).collect(),
+            hour: (0..=23).collect(),
+            day_of_month: vec![1],
+            month: (1..=12).collect(),
+            day: (0..=6).collect(),
+        };
+
+        let (_, schedule) = schedule(CompleteStr("* * 1 * *")).unwrap();
+        assert_eq!(schedule, expected);
     }
 
     #[test]
     fn test_invalid_period_range_schedule() {
-        let expression = "30/30-150";
-        assert!(schedule(CompleteStr(expression)).is_err());
+        assert!(schedule(CompleteStr("30/30-150 * * * *")).is_err());
     }
 }

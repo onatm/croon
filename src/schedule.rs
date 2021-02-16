@@ -25,10 +25,13 @@ pub enum CronExpression {
     Period(CronBaseExpression, u32),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Schedule {
-    pub minutes: Vec<u32>,
-    pub hours: Vec<u32>,
+    pub minute: Vec<u32>,
+    pub hour: Vec<u32>,
+    pub day_of_month: Vec<u32>,
+    pub month: Vec<u32>,
+    pub day: Vec<u32>,
 }
 
 impl FromStr for Schedule {
@@ -41,19 +44,24 @@ impl FromStr for Schedule {
 
 impl Schedule {
     pub fn from_cron_expression_list(
-        minutes: Vec<CronExpression>,
-        hours: Vec<CronExpression>,
+        minute_list: Vec<CronExpression>,
+        hour_list: Vec<CronExpression>,
+        day_of_month_list: Vec<CronExpression>,
+        month_list: Vec<CronExpression>,
+        day_list: Vec<CronExpression>,
     ) -> Schedule {
         Schedule {
-            minutes: Self::calculate_unit(minutes, 0, 59),
-            hours: Self::calculate_unit(hours, 0, 23),
+            minute: Self::calculate_unit(minute_list, 0, 59),
+            hour: Self::calculate_unit(hour_list, 0, 23),
+            day_of_month: Self::calculate_unit(day_of_month_list, 1, 31),
+            month: Self::calculate_unit(month_list, 1, 12),
+            day: Self::calculate_unit(day_list, 0, 6),
         }
     }
 
-    fn calculate_unit(list: Vec<CronExpression>, min: u32, max: u32) -> Vec<u32> {
+    fn calculate_unit(expressions: Vec<CronExpression>, min: u32, max: u32) -> Vec<u32> {
         let mut set = LinkedHashSet::<u32>::new();
-        for expression in list {
-            // println!("{:?}", expression);
+        for expression in expressions {
             let inner = Self::from_cron_expression(expression, min, max);
             set.extend(inner);
         }
