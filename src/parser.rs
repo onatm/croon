@@ -59,7 +59,12 @@ named!(
 
 named!(
   schedule<CompleteStr, Schedule>,
-  complete!(do_parse!(minutes: cron_expression_list >> eof!() >> (Schedule::from_cron_expression_list(minutes))))
+  complete!(
+      do_parse!(
+          minutes: cron_expression_list >>
+          hours: cron_expression_list >>
+          eof!() >>
+          (Schedule::from_cron_expression_list(minutes, hours))))
 );
 
 #[cfg(test)]
