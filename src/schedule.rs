@@ -1,29 +1,11 @@
 use linked_hash_set::LinkedHashSet;
-use std::{error, fmt::Display, str::FromStr};
+use std::str::FromStr;
 
-use crate::parser::Parser;
-#[derive(Debug)]
-pub struct Error;
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "something went wrong!")
-    }
-}
-impl error::Error for Error {}
-
-#[derive(Debug, PartialEq)]
-pub enum CronBaseExpression {
-    All,
-    Exact(u32),
-    Range(u32, u32),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum CronExpression {
-    Simple(CronBaseExpression),
-    Period(CronBaseExpression, u32),
-}
+use crate::{
+    error::Error,
+    expression::{CronBaseExpression, CronExpression},
+    parser::Parser,
+};
 
 #[derive(Debug, PartialEq)]
 pub struct Schedule {

@@ -1,6 +1,10 @@
 use nom::{types::CompleteStr, *};
 
-use crate::schedule::{CronBaseExpression, CronExpression, Error, Schedule};
+use crate::{
+    error::Error,
+    expression::{CronBaseExpression, CronExpression},
+    schedule::Schedule,
+};
 
 pub struct Parser;
 
