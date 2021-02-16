@@ -31,38 +31,56 @@ impl Schedule {
         day_of_month_list: Vec<CronExpression>,
         month_list: Vec<CronExpression>,
         day_list: Vec<CronExpression>,
-    ) -> Schedule {
-        Schedule {
-            minute: Self::calculate_unit(minute_list, 0, 59),
-            hour: Self::calculate_unit(hour_list, 0, 23),
-            day_of_month: Self::calculate_unit(day_of_month_list, 1, 31),
-            month: Self::calculate_unit(month_list, 1, 12),
-            day: Self::calculate_unit(day_list, 0, 6),
-        }
+    ) -> Result<Schedule, Error> {
+        let minute = Self::calculate_unit(minute_list, 0, 59)?;
+        let hour = Self::calculate_unit(hour_list, 0, 23)?;
+        let day_of_month = Self::calculate_unit(day_of_month_list, 1, 31)?;
+        let month = Self::calculate_unit(month_list, 1, 12)?;
+        let day = Self::calculate_unit(day_list, 0, 6)?;
+
+        Ok(Schedule {
+            minute,
+            hour,
+            day_of_month,
+            month,
+            day,
+        })
     }
 
-    fn calculate_unit(expressions: Vec<CronExpression>, min: u32, max: u32) -> Vec<u32> {
+    fn calculate_unit(
+        expressions: Vec<CronExpression>,
+        min: u32,
+        max: u32,
+    ) -> Result<Vec<u32>, Error> {
         let mut set = LinkedHashSet::<u32>::new();
         for expression in expressions {
-            let inner = Self::from_cron_expression(expression, min, max);
+            let inner = Self::from_cron_expression(expression, min, max)?;
             set.extend(inner);
         }
         let mut items: Vec<u32> = set.into_iter().collect();
         items.sort();
-        items
+        Ok(items)
     }
 
-    fn from_cron_expression(expression: CronExpression, min: u32, max: u32) -> LinkedHashSet<u32> {
+    fn from_cron_expression(
+        expression: CronExpression,
+        min: u32,
+        max: u32,
+    ) -> Result<LinkedHashSet<u32>, Error> {
         match expression {
             CronExpression::Simple(expression) => {
                 Self::from_cron_base_expression(expression, min, max)
             }
             CronExpression::Period(start, step) => {
                 let set = match start {
-                    CronBaseExpression::Exact(start) => (start..=max).collect(),
+                    CronBaseExpression::Exact(start) => Ok((start..=max).collect()),
                     expression => Self::from_cron_base_expression(expression, min, max),
-                };
-                set.into_iter().step_by(step as usize).collect()
+                }?;
+                let period_set = set
+                    .into_iter()
+                    .step_by(step as usize)
+                    .collect::<LinkedHashSet<u32>>();
+                Ok(period_set)
             }
         }
     }
@@ -71,15 +89,21 @@ impl Schedule {
         expression: CronBaseExpression,
         min: u32,
         max: u32,
-    ) -> LinkedHashSet<u32> {
+    ) -> Result<LinkedHashSet<u32>, Error> {
         match expression {
-            CronBaseExpression::All => (min..=max).collect(),
+            CronBaseExpression::All => Ok((min..=max).collect()),
             CronBaseExpression::Exact(number) => {
                 let mut set = LinkedHashSet::new();
                 set.insert(number);
-                set
+                Ok(set)
             }
-            CronBaseExpression::Range(start, end) => (start..=end).collect(),
+            CronBaseExpression::Range(start, end) => {
+                if start > max || end > max {
+                    Err(Error {})
+                } else {
+                    Ok((start..=end).collect())
+                }
+            }
         }
     }
 }

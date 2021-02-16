@@ -71,7 +71,7 @@ named!(
           month: cron_expression_list >>
           day: cron_expression_list >>
           eof!() >>
-          (Schedule::from_cron_expression_list(minute, hour, day_of_month, month, day))))
+          (Schedule::from_cron_expression_list(minute, hour, day_of_month, month, day).unwrap())))
 );
 
 #[cfg(test)]
