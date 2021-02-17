@@ -13,7 +13,7 @@ pub struct CronTab {
     pub hour: Vec<u32>,
     pub day_of_month: Vec<u32>,
     pub month: Vec<u32>,
-    pub day: Vec<u32>,
+    pub day_of_week: Vec<u32>,
     pub command: String,
 }
 
@@ -38,7 +38,7 @@ impl CronTab {
         let hour = Self::calculate_time(hour_list, 0, 23)?;
         let day_of_month = Self::calculate_time(day_of_month_list, 1, 31)?;
         let month = Self::calculate_time(month_list, 1, 12)?;
-        let day = Self::calculate_time(day_list, 0, 6)?;
+        let day_of_week = Self::calculate_time(day_list, 0, 6)?;
 
         if command.len() == 0 {
             return Err(Error {});
@@ -49,7 +49,7 @@ impl CronTab {
             hour,
             day_of_month,
             month,
-            day,
+            day_of_week,
             command,
         })
     }

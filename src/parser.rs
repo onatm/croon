@@ -75,12 +75,12 @@ named!(
             hour: cron_expression_list >>
             day_of_month: cron_expression_list >>
             month: cron_expression_list >>
-            day: cron_expression_list >>
+            day_of_week: cron_expression_list >>
             command: rest >>
-            eof!() >> (minute, hour, day_of_month, month, day, command)
+            eof!() >> (minute, hour, day_of_month, month, day_of_week, command)
         )
     ),
-    |(minute, hour, day_of_month, month, day, command)| CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day, command)
+    |(minute, hour, day_of_month, month, day_of_week, command)| CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day_of_week, command)
   )
 );
 
@@ -160,7 +160,7 @@ mod test {
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
-            day: (0..=6).collect(),
+            day_of_week: (0..=6).collect(),
             command: String::from("echo 'hello world'"),
         };
 
@@ -175,7 +175,7 @@ mod test {
             hour: (0..=23).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
-            day: vec![1],
+            day_of_week: vec![1],
             command: String::from("echo"),
         };
 
@@ -190,7 +190,7 @@ mod test {
             hour: (2..=8).step_by(2).collect(),
             day_of_month: (1..=31).collect(),
             month: (1..=12).collect(),
-            day: (0..=6).collect(),
+            day_of_week: (0..=6).collect(),
             command: String::from("echo"),
         };
 
@@ -205,7 +205,7 @@ mod test {
             hour: (0..=23).collect(),
             day_of_month: vec![1],
             month: (1..=12).collect(),
-            day: (0..=6).collect(),
+            day_of_week: (0..=6).collect(),
             command: String::from("echo"),
         };
 

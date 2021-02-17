@@ -14,5 +14,22 @@ fn main() {
         process::exit(1);
     });
 
-    println!("{:?}", schedule);
+    print!("minute\t\t");
+    print_formatted_vec(schedule.minute);
+    print!("hour\t\t");
+    print_formatted_vec(schedule.hour);
+    print!("day of month\t");
+    print_formatted_vec(schedule.day_of_month);
+    print!("month\t\t");
+    print_formatted_vec(schedule.month);
+    print!("day of week\t");
+    print_formatted_vec(schedule.day_of_week);
+    println!("command\t\t{:?}", schedule.command);
+}
+
+fn print_formatted_vec(vec: Vec<u32>) {
+    for item in vec {
+        print!("{:?} ", item)
+    }
+    println!("")
 }
