@@ -14,17 +14,17 @@ fn main() {
         process::exit(1);
     });
 
-    print!("minute\t\t");
+    print!("{:14}", "minute");
     print_formatted_vec(schedule.minute);
-    print!("hour\t\t");
+    print!("{:14}", "hour");
     print_formatted_vec(schedule.hour);
-    print!("day of month\t");
+    print!("{:14}", "day of month");
     print_formatted_vec(schedule.day_of_month);
-    print!("month\t\t");
+    print!("{:14}", "month");
     print_formatted_vec(schedule.month);
-    print!("day of week\t");
+    print!("{:14}", "day of week");
     print_formatted_vec(schedule.day_of_week);
-    println!("command\t\t{:?}", schedule.command);
+    println!("{:14}{:?}", "command", schedule.command);
 }
 
 fn print_formatted_vec(vec: Vec<u32>) {
