@@ -1,4 +1,6 @@
 use std::{error, fmt::Display};
+
+// `Error` type is created to enable usage of `FromStr` trait on `CronTab`.
 #[derive(Debug)]
 pub struct Error;
 

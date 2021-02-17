@@ -12,7 +12,7 @@ impl Parser {
     pub fn parse(expression: &str) -> Result<CronTab, Error> {
         match cron_table(CompleteStr(expression)) {
             Ok((_, schedule)) => Ok(schedule),
-            Err(_) => Err(Error {}),
+            Err(_) => Err(Error),
         }
     }
 }

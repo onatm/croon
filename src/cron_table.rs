@@ -41,7 +41,7 @@ impl CronTab {
         let day_of_week = Self::calculate_time(day_list, 0, 6)?;
 
         if command.len() == 0 {
-            return Err(Error {});
+            return Err(Error);
         }
 
         Ok(CronTab {
@@ -102,7 +102,7 @@ impl CronTab {
             }
             CronBaseExpression::Range(start, end) => {
                 if start > max || end > max {
-                    Err(Error {})
+                    Err(Error)
                 } else {
                     Ok((start..=end).collect())
                 }
