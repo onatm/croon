@@ -62,8 +62,11 @@ named!(
 );
 
 named!(
-    rest<CompleteStr, String>,
-    parse_to!(String)
+    command<CompleteStr, String>,
+    do_parse!(
+        multispace0 >>
+        command: take_while!(|c: char| c.is_alphanumeric() || c == '/' || c.is_whitespace()) >> (String::from(command.0))
+    )
 );
 
 named!(
@@ -76,7 +79,7 @@ named!(
             day_of_month: cron_expression_list >>
             month: cron_expression_list >>
             day_of_week: cron_expression_list >>
-            command: rest >>
+            command: command >>
             eof!() >> (minute, hour, day_of_month, month, day_of_week, command)
         )
     ),
