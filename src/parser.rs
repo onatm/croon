@@ -70,7 +70,46 @@ named!(
 );
 
 named!(
-  cron_table<CompleteStr, CronTab>,
+  hour_macro<CompleteStr, CronTab>,
+  do_parse!(
+      tag!("@hourly") >>
+      multispace >>
+      command: command >> (
+          CronTab {
+              minute: vec![0],
+              hour: (0..=23).collect(),
+              day_of_month: (1..31).collect(),
+              month: (1..12).collect(),
+              day_of_week: (0..6).collect(),
+              command
+         })
+  )
+);
+
+named!(
+    week_macro<CompleteStr, CronTab>,
+    do_parse!(
+        tag!("@weekly") >>
+        multispace >>
+        command: command >> (
+            CronTab {
+                minute: vec![0],
+                hour: vec![0],
+                day_of_month: (1..31).collect(),
+                month: (1..12).collect(),
+                day_of_week: vec![0],
+                command
+           })
+    )
+);
+
+named!(
+    short_cron<CompleteStr, CronTab>,
+    alt!(hour_macro | week_macro)
+);
+
+named!(
+  full_cron<CompleteStr, CronTab>,
   map_res!(
     complete!(
         do_parse!(
@@ -85,6 +124,11 @@ named!(
     ),
     |(minute, hour, day_of_month, month, day_of_week, command)| CronTab::from_cron_expression_list(minute, hour, day_of_month, month, day_of_week, command)
   )
+);
+
+named!(
+    cron_table<CompleteStr, CronTab>,
+    alt!(short_cron | full_cron)
 );
 
 #[cfg(test)]
