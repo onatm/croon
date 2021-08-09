@@ -78,3 +78,7 @@ The purpose of using `linked_hash_set` dependency is solely to have `HashSet` th
 ### Choosing Rust
 
 As a software engineer, I didn't have any chance to use parsers or parser combinators during my career. However, since I started playing with rust, I found myself implementing parsers for the most of the projects that I delivered. I find rust really comfortable to build parsers because of the ergonomics it provides with enums (union type functionality but in the form of algebraic data type), powerful pattern matching and absence of `null`.
+
+## License
+
+Licensed under MIT license ([LICENSE](LICENSE) or <http://opensource.org/licenses/MIT>)
