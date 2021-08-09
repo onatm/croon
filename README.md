@@ -40,7 +40,7 @@ croon consists of two main parts:
 - CLI entry point
 - Library to parse cron expressions
 
-It has two external dependencies for development convenience: `nom` and `linked_hash_set`.
+It has two external dependencies for development convenience: `nom`, `linked_hash_set` and `lazy_static`.
 
 ### How it works
 

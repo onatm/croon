@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use nom::{types::CompleteStr, *};
 
 use crate::{
@@ -17,6 +19,20 @@ impl Parser {
     }
 }
 
+lazy_static! {
+    static ref ALIAS_MAP: HashMap<&'static str, u32> = {
+        let mut m = HashMap::new();
+        m.insert("MON", 1);
+        m.insert("TUE", 2);
+        m.insert("WED", 3);
+        m.insert("THU", 4);
+        m.insert("FRI", 5);
+        m.insert("SAT", 6);
+        m.insert("SUN", 0);
+        m
+    };
+}
+
 named!(
   number<CompleteStr, u32>,
   map_res!(ws!(digit), |x: CompleteStr| x.0.parse())
@@ -24,13 +40,28 @@ named!(
 
 named!(
   exact<CompleteStr, CronBaseExpression>,
-  do_parse!(n: number >> (CronBaseExpression::Exact(n)))
+  do_parse!(n: alt!(number | day) >> (CronBaseExpression::Exact(n)))
+);
+
+fn map_alias_to_number(alias: String) -> Result<u32, Error> {
+    if let Some(value) = ALIAS_MAP.get(&*alias) {
+        Ok(value.clone())
+    } else {
+        Err(Error)
+    }
+}
+
+named!(
+    day<CompleteStr, u32>,
+    do_parse!(
+        day: alt!(tag!("MON") | tag!("TUE") | tag!("WED") | tag!("THU") | tag!("FRI") | tag!("SAT") | tag!("SUN")) >> (map_alias_to_number(day.0.to_string()).unwrap())
+    )
 );
 
 named!(
   range<CompleteStr, CronBaseExpression>,
   complete!(do_parse!(
-      start: number >> tag!("-") >> end: number >> (CronBaseExpression::Range(start, end))
+      start: alt!(number | day) >> tag!("-") >> end: alt!(number| day) >> (CronBaseExpression::Range(start, end))
   ))
 );
 
@@ -38,7 +69,7 @@ named!(all<CompleteStr, CronBaseExpression>, do_parse!(tag!("*") >> (CronBaseExp
 
 named!(
   cron_base_expression<CompleteStr, CronBaseExpression>,
-  alt!(all | range | exact)
+  alt!(all | range | exact )
 );
 
 named!(
@@ -65,7 +96,7 @@ named!(
     command<CompleteStr, String>,
     do_parse!(
         multispace0 >>
-        command: take_while!(|c: char| c.is_alphanumeric() || c == '/' || c.is_whitespace()) >> (String::from(command.0))
+        command: take_while!(|c: char| c.is_alphanumeric() || c == '\'' || c == '/' || c.is_whitespace()) >> (String::from(command.0))
     )
 );
 
@@ -102,8 +133,23 @@ mod test {
     }
 
     #[test]
+    fn test_valid_day() {
+        day(CompleteStr("MON")).unwrap();
+    }
+
+    #[test]
+    fn test_invalid_alias() {
+        assert!(day(CompleteStr("MoN")).is_err());
+    }
+
+    #[test]
     fn test_valid_range() {
         range(CompleteStr("2-4")).unwrap();
+    }
+
+    #[test]
+    fn test_valid_range_of_number_and_day() {
+        range(CompleteStr("MON-4")).unwrap();
     }
 
     #[test]
@@ -139,6 +185,11 @@ mod test {
     #[test]
     fn test_valid_number_list() {
         cron_expression_list(CompleteStr("4,2")).unwrap();
+    }
+
+    #[test]
+    fn test_valid_alias_list() {
+        cron_expression_list(CompleteStr("MON,2")).unwrap();
     }
 
     #[test]
