@@ -96,7 +96,7 @@ named!(
     command<CompleteStr, String>,
     do_parse!(
         multispace0 >>
-        command: take_while!(|c: char| c.is_alphanumeric() || c == '\'' || c == '/' || c.is_whitespace()) >> (String::from(command.0))
+        command: take_while!(|c: char| c != '\r' && c != '\n') >> (String::from(command.0))
     )
 );
 
@@ -275,5 +275,22 @@ mod test {
     #[test]
     fn test_missing_command_cron_table() {
         assert!(cron_table(CompleteStr("* * * * *")).is_err());
+    }
+
+    #[test]
+    fn test_expanded_chars() {
+        let expected = CronTab {
+            minute: (0..=59).collect(),
+            hour: (0..=23).collect(),
+            day_of_month: (1..=31).collect(),
+            month: (1..=12).collect(),
+            day_of_week: (0..=6).collect(),
+            command: String::from(
+                r##"!"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"##,
+            ),
+        };
+
+        let (_, cron_table) = cron_table(CompleteStr(r##"* * * * * !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"##)).unwrap();
+        assert_eq!(cron_table, expected);
     }
 }
